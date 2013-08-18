@@ -1,0 +1,4 @@
+name = Ordered List
+description = Defines ordered list field type.
+package = Fields
+core = 7.x
