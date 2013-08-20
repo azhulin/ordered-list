@@ -16,16 +16,11 @@ function ordered_list_field_schema() {
       'length' => 255,
       'not null' => FALSE,
     ),
-    'position' => array(
-      'type' => 'int',
-      'unsigned' => TRUE,
-      'not null' => FALSE
-    ),
   );
   return array(
     'columns' => $columns,
     'indexes' => array(
-      'value' => array('value', 'position'),
+      'value' => array('value'),
     ),
   );
 }

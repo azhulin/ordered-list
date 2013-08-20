@@ -4,8 +4,10 @@
     widgets.each(function() {
       var target = $(this)
         , input = $('input', target)
-        , left = $('a.button-left', target)
-        , right = $('a.button-right', target)
+        , left = $('.button-left a', target)
+        , right = $('.button-right a', target)
+        , up = $('.button-up a', target)
+        , down = $('.button-down a', target)
         , available = $('.items-available .item-list ul', target)
         , selected = $('.items-selected .item-list ul', target);
       !selected.length && (selected = $('<ul/>').appendTo('.items-selected .item-list'));
@@ -31,7 +33,21 @@
         });
         return false;
       });
-      left.add(right).click(function() {
+      up.click(function() {
+        $('li.selected', selected).each(function() {
+          var target = $(this);
+          target.prevAll().not('.selected').length && target.prev().insertAfter(target);
+        });
+        return false;
+      });
+      down.click(function() {
+        $($('li.selected', selected).get().reverse()).each(function() {
+          var target = $(this);
+          target.nextAll().not('.selected').length && target.next().insertBefore(target);
+        });
+        return false;
+      });
+      left.add(right).add(up).add(down).click(function() {
         var value = [];
         $('li', selected).each(function() {
           value.push($(this).attr('key'));

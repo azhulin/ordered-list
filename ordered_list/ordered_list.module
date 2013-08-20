@@ -10,7 +10,6 @@
  * Implements hook_elements().
  */
 function ordered_list_element_info() {
-  // This is the definition for the new form API element.
   return array(
     'ordered_list' => array(
       '#input' => TRUE,
@@ -25,7 +24,6 @@ function ordered_list_element_info() {
  * Validation function for the ordered_list form element.
  */
 function ordered_list_element_validate($element, &$form_state) {
-//@file_put_contents('D:/log.txt',date('m-d-y H:i:s').' '.basename(__FILE__).':'.__LINE__.">\n".print_r($element['#value'],1)."\n",FILE_APPEND);
   foreach ($element['#value'] as $value) {
     if (!isset($element['#values'][$value['value']])) {
       form_error($element, t('An illegal choice has been detected.'));
@@ -40,16 +38,12 @@ function ordered_list_element_validate($element, &$form_state) {
 function form_type_ordered_list_value($element, $edit = FALSE) {
   $values = func_num_args() == 1 ? $element['#default_value'] : $edit;
   if ($values) {
-//@file_put_contents('D:/log.txt',date('m-d-y H:i:s').' '.basename(__FILE__).':'.__LINE__.">\n".print_r($values,1)."\n",FILE_APPEND);
     $values = explode('|', $values);
-//@file_put_contents('D:/log.txt',date('m-d-y H:i:s').' '.basename(__FILE__).':'.__LINE__.">\n".print_r($values,1)."\n",FILE_APPEND);
-    foreach ($values as $delta => &$value) {
+    foreach ($values as &$value) {
       $value = array(
         'value' => $value,
-        'position' => $delta,
       );
     }
-//@file_put_contents('D:/log.txt',date('m-d-y H:i:s').' '.basename(__FILE__).':'.__LINE__.">\n".print_r($values,1)."\n",FILE_APPEND);
   }
   else {
     $values = array();
@@ -77,7 +71,6 @@ function ordered_list_theme() {
  */
 function theme_ordered_list_element($vars) {
   $element = $vars['element'];
-
   $selected = array();
   $available = array();
   $i = 0;
@@ -100,26 +93,19 @@ function theme_ordered_list_element($vars) {
   }
   $available = theme('item_list', array('items' => $available));
   $selected = theme('item_list', array('items' => $selected));
-
   $output = '';
   if (isset($element['#field_prefix'])) {
     $output .= '<span class="field-prefix">' . $element['#field_prefix'] . '</span> ';
   }
-  $button_left = l(t('Add'), '', array('external' => TRUE, 'fragment' => FALSE, 'attributes' => array(
-    'class' => array('button-left'),
-  )));
-  $button_right = l(t('Remove'), '', array('external' => TRUE, 'fragment' => FALSE, 'attributes' => array(
-    'class' => array('button-right'),
-  )));
   $name = isset($element['#name']) ? $element['#name'] : $element['#id'];
-  $output .= '<div class="items-selected"><div class="label">'
-    . t('Selected items') . '</div>' . $selected . '</div>'
-    . '<div class="buttons"><div>' . $button_left . '</div><div>' . $button_right . '</div></div>'
+  $output .= '<div class="buttons">' . ordered_list_button('up') . ordered_list_button('down') . '</div>'
+    . '<div class="items-selected"><div class="label">'
+    . t('Selected Items') . '</div>' . $selected . '</div>'
+    . '<div class="buttons">' . ordered_list_button('left') . ordered_list_button('right') . '</div>'
     . '<div class="items-available"><div class="label">'
     . t('Available Items') . '</div>' . $available . '</div>'
     . '<input type="hidden" name="' . $name . '" id="' . $element['#id']
     . '" value="' . implode('|', $hidden) . '"/>';
-
   if (isset($element['#field_suffix'])) {
     $output .= '<span class="field-suffix">' . $element['#field_suffix'] . '</span>';
   }
@@ -132,6 +118,17 @@ function theme_ordered_list_element($vars) {
   );
 
   return drupal_render($element);
+}
+
+
+/**
+ * Renders widget button.
+ */
+function ordered_list_button($class) {
+  return '<div class="button-' . $class . '">' . l(t($class), '', array(
+    'external' => TRUE,
+    'fragment' => FALSE,
+  )) . '</div>';
 }
 
 
@@ -164,8 +161,6 @@ function ordered_list_field_settings_form($field, $instance, $has_data) {
   $form = array(
     '#element_validate' => array('ordered_list_values_setting_validate'),
   );
-
-//@file_put_contents('D:/log.txt',date('m-d-y H:i:s').' '.basename(__FILE__).':'.__LINE__.">\n".print_r($settings,1)."\n",FILE_APPEND);
 
   $form['values_source'] = array(
     '#type' => 'radios',
@@ -226,8 +221,6 @@ function ordered_list_languages() {
  */
 function ordered_list_values_setting_validate($element, &$form_state) {
   $settings = $form_state['values']['field']['settings'];
-//@file_put_contents('D:/log.txt',date('m-d-y H:i:s').' '.basename(__FILE__).':'.__LINE__.">\n".print_r($settings,1)."\n",FILE_APPEND);
-
   if (!$settings['values_source']) {
     $e = $element['values_list'];
     $values = ordered_list_extract_allowed_values($settings['values_list']);
@@ -351,7 +344,7 @@ function ordered_list_extract_allowed_values($string) {
 function ordered_list_allowed_values_string($values) {
   $lines = array();
   foreach ($values as $key => $value) {
-    $lines[] = "$key|$value";
+    $lines[] = $key . '|' . $value;
   }
   return implode("\n", $lines);
 }
@@ -361,9 +354,7 @@ function ordered_list_allowed_values_string($values) {
  * Implements hook_field_validate().
  */
 function ordered_list_field_validate($entity_type, $entity, $field, $instance, $langcode, $items, &$errors) {
-//@file_put_contents('D:/log.txt',date('m-d-y H:i:s').' '.basename(__FILE__).':'.__LINE__.">\n".print_r($items,1)."\n",FILE_APPEND);
   $allowed_values = ordered_list_allowed_values($field, $instance, $entity_type, $entity);
-//@file_put_contents('D:/log.txt',date('m-d-y H:i:s').' '.basename(__FILE__).':'.__LINE__.">\n".print_r($allowed_values,1)."\n",FILE_APPEND);
   foreach ($items as $delta => $item) {
     if (!empty($item['value'])) {
       if (!empty($allowed_values) && !isset($allowed_values[$item['value']])) {
@@ -409,23 +400,19 @@ function ordered_list_field_widget_info() {
  */
 function ordered_list_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
   $values = ordered_list_allowed_values($field, $instance);
-
   $value = array();
-//@file_put_contents('D:/log.txt',date('m-d-y H:i:s').' '.basename(__FILE__).':'.__LINE__.">\n".print_r($instance,1)."\n",FILE_APPEND);
-//@file_put_contents('D:/log.txt',date('m-d-y H:i:s').' '.basename(__FILE__).':'.__LINE__.">\n".print_r($items,1)."\n",FILE_APPEND);
   if (!empty($instance['default_value'])) {
     $value = $instance['default_value'];
   }
   if (!empty($items)) {
     $value = $items;
   }
-
   $element += array(
     '#type' => 'ordered_list',
     '#values' => $values,
     '#default_value' => $value,
   );
-//@file_put_contents('D:/log.txt',date('m-d-y H:i:s').' '.basename(__FILE__).':'.__LINE__.">\n".print_r($value,1)."\n",FILE_APPEND);
+
   return $element;
 }
 
@@ -448,7 +435,6 @@ function ordered_list_field_formatter_info() {
  */
 function ordered_list_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
   $element = array();
-
   switch ($display['type']) {
     case 'ordered_list_default':
       $allowed_values = ordered_list_allowed_values($field, $instance, $entity_type, $entity);
@@ -465,4 +451,15 @@ function ordered_list_field_formatter_view($entity_type, $entity, $field, $insta
   }
 
   return $element;
+}
+
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function ordered_list_form_field_ui_field_edit_form_alter(&$form, &$form_state, $form_id) {
+  if ('field_ui_field_edit_form' == $form_id && 'ordered_list' == $form['#field']['type']) {
+    $form['field']['cardinality']['#default_value'] = FIELD_CARDINALITY_UNLIMITED;
+    $form['field']['cardinality']['#access'] = FALSE;
+  }
 }
