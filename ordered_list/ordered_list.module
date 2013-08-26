@@ -81,7 +81,7 @@ function theme_ordered_list_element($vars) {
       'index' => $i++,
     );
   }
-  $values = $element['#default_value'];
+  $values = $element['#value'] ? $element['#value'] : $element['#default_value'];
   $hidden = array();
   foreach ($values as $value) {
     $value = $value['value'];
@@ -202,17 +202,6 @@ function ordered_list_field_settings_form($field, $instance, $has_data) {
   );
 
   return $form;
-}
-
-
-function ordered_list_languages() {
-  $languages = language_list('enabled');
-  $languages = reset($languages);
-  $langs = array();
-  foreach ($languages as $key => $data) {
-    $langs[$key] = $data->name;
-  }
-  return $langs;
 }
 
 

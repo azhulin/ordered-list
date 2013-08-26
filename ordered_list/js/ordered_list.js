@@ -10,7 +10,7 @@
         , down = $('.button-down a', target)
         , available = $('.items-available .item-list ul', target)
         , selected = $('.items-selected .item-list ul', target);
-      !selected.length && (selected = $('<ul/>').appendTo('.items-selected .item-list'));
+      !selected.length && (selected = $('<ul/>').appendTo($('.items-selected .item-list', target)));
       available.add(selected).find('li').click(function() {
         $(this).toggleClass('selected');
       });
